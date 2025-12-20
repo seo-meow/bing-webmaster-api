@@ -1,5 +1,9 @@
 # Bing Webmaster API Client
 
+[<img alt="crates.io" src="https://img.shields.io/crates/v/bing-webmaster-api" height="20">](https://crates.io/crates/bing-webmaster-api)
+[<img alt="docs.rs" src="https://img.shields.io/docsrs/bing-webmaster-api" height="20">](https://docs.rs/bing-webmaster-api)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/seo-meow/bing-webmaster-api/ci.yml?label=CI" height="20">](https://github.com/seo-meow/bing-webmaster-api/actions?query=branch%3Amaster)
+
 A Rust client library for the [Bing Webmaster API](https://learn.microsoft.com/en-us/bingwebmaster/), providing access to all methods from Microsoft's Bing Webmaster Tools.
 
 ## Features
