@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
     for issue_url in issues.iter().take(5) {
         println!("  URL: {}", issue_url.url);
         println!(
-            "    HTTP Code: {}, Issues: {}, In Links: {}",
+            "    HTTP Code: {}, Issues: {:?}, In Links: {}",
             issue_url.http_code, issue_url.issues, issue_url.in_links
         );
     }

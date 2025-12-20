@@ -253,34 +253,6 @@ impl BingWebmasterClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn add_page_preview_block(
-        &self,
-        site_url: &str,
-        page_url: &str,
-        block_reason: BlockReason,
-    ) -> Result<()> {
-        let url = format!(
-            "{}/json/AddPagePreviewBlock?apikey={}",
-            self.base_url, self.api_key
-        );
-        let body = json!({
-            "siteUrl": site_url,
-            "pageUrl": page_url,
-            "blockReason": block_reason
-        });
-
-        let response = self
-            .client
-            .post(&url)
-            .header("Content-Type", "application/json; charset=utf-8")
-            .body(serde_json::to_string(&body)?)
-            .send()
-            .await?;
-
-        self.handle_void_response(response).await
-    }
-
-    #[instrument(skip(self))]
     pub async fn add_query_parameter(&self, site_url: &str, query_parameter: &str) -> Result<()> {
         let url = format!(
             "{}/json/AddQueryParameter?apikey={}",
@@ -590,23 +562,6 @@ impl BingWebmasterClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_active_page_preview_blocks(
-        &self,
-        site_url: &str,
-    ) -> Result<Vec<PagePreviewBlock>> {
-        let url = format!(
-            "{}/json/GetActivePagePreviewBlocks?apikey={}&siteUrl={}",
-            self.base_url,
-            self.api_key,
-            urlencoding::encode(site_url)
-        );
-
-        let response = self.client.get(&url).send().await?;
-
-        self.handle_response(response).await
-    }
-
-    #[instrument(skip(self))]
     pub async fn get_blocked_urls(&self, site_url: &str) -> Result<Vec<BlockedUrl>> {
         let url = format!(
             "{}/json/GetBlockedUrls?apikey={}&siteUrl={}",
@@ -626,19 +581,27 @@ impl BingWebmasterClient {
         site_url: &str,
         url: &str,
         page: u16,
-        filter: &FilterProperties,
+        filter_properties: &FilterProperties,
     ) -> Result<Vec<UrlInfo>> {
         let api_url = format!(
-            "{}/json/GetChildrenUrlInfo?apikey={}&siteUrl={}&url={}&page={}&filter={}",
-            self.base_url,
-            self.api_key,
-            urlencoding::encode(site_url),
-            urlencoding::encode(url),
-            page,
-            urlencoding::encode(&serde_json::to_string(filter)?)
+            "{}/json/GetChildrenUrlInfo?apikey={}",
+            self.base_url, self.api_key
         );
 
-        let response = self.client.get(&api_url).send().await?;
+        let body = serde_json::json!({
+            "siteUrl": site_url,
+            "url": url,
+            "page": page,
+            "filterProperties": filter_properties
+        });
+
+        let response = self
+            .client
+            .post(&api_url)
+            .header("Content-Type", "application/json; charset=utf-8")
+            .body(serde_json::to_string(&body)?)
+            .send()
+            .await?;
 
         self.handle_response(response).await
     }
@@ -831,7 +794,7 @@ impl BingWebmasterClient {
         query: &str,
         country: &str,
         language: &str,
-    ) -> Result<KeywordStats> {
+    ) -> Result<Vec<KeywordStats>> {
         let api_url = format!(
             "{}/json/GetKeywordStats?apikey={}&q={}&country={}&language={}",
             self.base_url,
@@ -847,7 +810,7 @@ impl BingWebmasterClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_link_counts(&self, site_url: &str, page: i16) -> Result<Vec<LinkCount>> {
+    pub async fn get_link_counts(&self, site_url: &str, page: i16) -> Result<LinkCounts> {
         let url = format!(
             "{}/json/GetLinkCounts?apikey={}&siteUrl={}&page={}",
             self.base_url,
@@ -868,7 +831,7 @@ impl BingWebmasterClient {
         page_url: &str,
     ) -> Result<Vec<QueryStats>> {
         let api_url = format!(
-            "{}/json/GetPageQueryStats?apikey={}&siteUrl={}&pageUrl={}",
+            "{}/json/GetPageQueryStats?apikey={}&siteUrl={}&page={}",
             self.base_url,
             self.api_key,
             urlencoding::encode(site_url),
@@ -886,9 +849,9 @@ impl BingWebmasterClient {
         site_url: &str,
         query: &str,
         page_url: &str,
-    ) -> Result<DetailedQueryStats> {
+    ) -> Result<Vec<DetailedQueryStats>> {
         let api_url = format!(
-            "{}/json/GetQueryPageDetailStats?apikey={}&siteUrl={}&query={}&pageUrl={}",
+            "{}/json/GetQueryPageDetailStats?apikey={}&siteUrl={}&query={}&page={}",
             self.base_url,
             self.api_key,
             urlencoding::encode(site_url),
@@ -954,7 +917,10 @@ impl BingWebmasterClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_rank_and_traffic_stats(&self, site_url: &str) -> Result<RankAndTrafficStats> {
+    pub async fn get_rank_and_traffic_stats(
+        &self,
+        site_url: &str,
+    ) -> Result<Vec<RankAndTrafficStats>> {
         let url = format!(
             "{}/json/GetRankAndTrafficStats?apikey={}&siteUrl={}",
             self.base_url,
@@ -963,31 +929,6 @@ impl BingWebmasterClient {
         );
 
         let response = self.client.get(&url).send().await?;
-
-        self.handle_response(response).await
-    }
-
-    #[instrument(skip(self))]
-    pub async fn get_related_keywords(
-        &self,
-        query: &str,
-        country: &str,
-        language: &str,
-        start_date: chrono::DateTime<chrono::Utc>,
-        end_date: chrono::DateTime<chrono::Utc>,
-    ) -> Result<Vec<Keyword>> {
-        let api_url = format!(
-            "{}/json/GetRelatedKeywords?apikey={}&q={}&country={}&language={}&startDate={}&endDate={}",
-            self.base_url,
-            self.api_key,
-            urlencoding::encode(query),
-            urlencoding::encode(country),
-            urlencoding::encode(language),
-            start_date.format("%Y-%m-%dT%H:%M:%S"),
-            end_date.format("%Y-%m-%dT%H:%M:%S")
-        );
-
-        let response = self.client.get(&api_url).send().await?;
 
         self.handle_response(response).await
     }
@@ -1044,15 +985,15 @@ impl BingWebmasterClient {
     pub async fn get_url_links(
         &self,
         site_url: &str,
-        url: &str,
+        link: &str,
         page: i16,
-    ) -> Result<Vec<LinkDetail>> {
+    ) -> Result<LinkDetails> {
         let api_url = format!(
-            "{}/json/GetUrlLinks?apikey={}&siteUrl={}&url={}&page={}",
+            "{}/json/GetUrlLinks?apikey={}&siteUrl={}&link={}&page={}",
             self.base_url,
             self.api_key,
             urlencoding::encode(site_url),
-            urlencoding::encode(url),
+            urlencoding::encode(link),
             page
         );
 
@@ -1188,28 +1129,6 @@ impl BingWebmasterClient {
         let body = json!({
             "siteUrl": site_url,
             "feedUrl": feed_url
-        });
-
-        let response = self
-            .client
-            .post(&url)
-            .header("Content-Type", "application/json; charset=utf-8")
-            .body(serde_json::to_string(&body)?)
-            .send()
-            .await?;
-
-        self.handle_void_response(response).await
-    }
-
-    #[instrument(skip(self))]
-    pub async fn remove_page_preview_block(&self, site_url: &str, page_url: &str) -> Result<()> {
-        let url = format!(
-            "{}/json/RemovePagePreviewBlock?apikey={}",
-            self.base_url, self.api_key
-        );
-        let body = json!({
-            "siteUrl": site_url,
-            "pageUrl": page_url
         });
 
         let response = self

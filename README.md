@@ -107,3 +107,18 @@ This project is licensed under either of
 - MIT License
 
 at your option.
+
+## TODOs
+- method `GetReqlatedKeywords`
+- method `GetKeyword(String, String, String, DateTime, DateTime)`
+- method `AddPagePreviewBlock(String, String, BlockReason)`
+- method `RemovePagePreviewBlock(String, String)`
+- method `GetActivePagePreviewBlocks(String)`
+- method `SubmitSiteMove(String, SiteMoveSettings)`
+- method `GetSiteMoves(String)`
+- method `AddBlockedUrl(String, BlockedUrl)`
+- method `GetBlockedUrls(String)`
+- method `RemoveBlockedUrl(String, BlockedUrl)`
+- method `AddDeepLinkBlock(String, String, String, String)`
+- method `GetDeepLinkBlocks(String)`
+- method `RemoveDeepLinkBlock(String, String, String, String)`

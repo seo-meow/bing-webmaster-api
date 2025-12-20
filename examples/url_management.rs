@@ -1,5 +1,5 @@
 use bing_webmaster_api::{
-    BingWebmasterClient, BlockReason, BlockedUrl, BlockedUrlEntityType, BlockedUrlRequestType,
+    BingWebmasterClient, BlockedUrl, BlockedUrlEntityType, BlockedUrlRequestType,
     CountryRegionSettings, CountryRegionSettingsType, Result,
 };
 use chrono::Utc;
@@ -39,38 +39,17 @@ async fn main() -> Result<()> {
     println!("Adding blocked URLs...");
     let blocked_url = BlockedUrl {
         url: "https://example.com/admin".to_string(),
-        date: Utc::now(),
+        date: Utc::now().date_naive(),
         days_to_expire: Some(30),
         entity_type: BlockedUrlEntityType::Page,
         request_type: BlockedUrlRequestType::FullRemoval,
     };
     client.add_blocked_url(site_url, &blocked_url).await?;
 
-    // Add page preview block
-    println!("Adding page preview block...");
-    client
-        .add_page_preview_block(
-            site_url,
-            "https://example.com/private",
-            BlockReason::NoPreview,
-        )
-        .await?;
-
-    // Add deep link block
-    println!("Adding deep link block...");
-    client
-        .add_deep_link_block(
-            site_url,
-            "en-US",
-            "https://www.bing.com/search?q=example",
-            "https://example.com/product/123",
-        )
-        .await?;
-
     // Set geographic targeting
     println!("Setting country/region targeting...");
     let geo_settings = CountryRegionSettings {
-        date: Utc::now(),
+        date: Utc::now().date_naive(),
         two_letter_iso_country_code: "US".to_string(),
         r#type: CountryRegionSettingsType::Domain,
         url: site_url.to_string(),

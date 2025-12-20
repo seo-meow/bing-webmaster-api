@@ -8,7 +8,7 @@
 //! All fields use `#[serde(rename = "...")]` to match the PascalCase naming convention
 //! used by the .NET API, while providing idiomatic snake_case Rust field names.
 
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -29,7 +29,11 @@ mod dotnet_date_format {
     where
         S: Serializer,
     {
-        let timestamp_ms = date.and_hms_opt(0, 0, 0).unwrap().and_utc().timestamp_millis();
+        let timestamp_ms = date
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_utc()
+            .timestamp_millis();
         let formatted = format!("/Date({})/", timestamp_ms);
         formatted.serialize(serializer)
     }
@@ -129,7 +133,11 @@ mod dotnet_date_format_opt {
         match date {
             None => "/Date(-0)/".serialize(serializer),
             Some(date) => {
-                let timestamp_ms = date.and_hms_opt(0, 0, 0).unwrap().and_utc().timestamp_millis();
+                let timestamp_ms = date
+                    .and_hms_opt(0, 0, 0)
+                    .unwrap()
+                    .and_utc()
+                    .timestamp_millis();
                 let formatted = format!("/Date({})/", timestamp_ms);
                 formatted.serialize(serializer)
             }
@@ -314,7 +322,8 @@ pub struct CountryRegionSettings {
 }
 
 /// Scope of geographic targeting
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
 pub enum CountryRegionSettingsType {
     /// Target a single page
     Page = 0,
@@ -564,19 +573,51 @@ pub struct QueryStats {
     pub query: String,
 }
 
+/// Crawl issues encountered for a URL
+///
+/// This is a flags enumeration that supports bitwise combination of values.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.UrlWithCrawlIssues.CrawlIssues
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
+pub enum CrawlIssues {
+    /// No issues
+    None = 0,
+    /// HTTP 301 permanent redirect
+    Code301 = 1,
+    /// HTTP 302 temporary redirect
+    Code302 = 2,
+    /// HTTP 4xx client error
+    Code4xx = 4,
+    /// HTTP 5xx server error
+    Code5xx = 8,
+    /// URL blocked by robots.txt
+    BlockedByRobotsTxt = 16,
+    /// Page contains malware
+    ContainsMalware = 32,
+    /// Important URL blocked by robots.txt
+    ImportantUrlBlockedByRobotsTxt = 64,
+    /// DNS resolution errors
+    DnsErrors = 128,
+    /// Request timeout errors
+    TimeOutErrors = 256,
+}
+
 /// URL with crawl issues
 ///
 /// Represents a URL that Bingbot encountered problems crawling,
 /// along with information about the type of issues.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.UrlWithCrawlIssues
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UrlWithCrawlIssues {
     /// HTTP status code returned when crawling this URL
     #[serde(rename = "HttpCode")]
     pub http_code: i32,
 
-    /// Bitmask of crawl issues encountered (see CrawlIssues enum)
+    /// Crawl issues encountered (flags enum, can be combined)
     #[serde(rename = "Issues")]
-    pub issues: i32,
+    pub issues: CrawlIssues,
 
     /// The URL that has crawl issues
     #[serde(rename = "Url")]
@@ -716,7 +757,7 @@ pub struct UrlInfo {
     pub anchor_count: i32,
 
     /// When Bing first discovered this URL
-    #[serde(rename = "DiscoveryDate")]
+    #[serde(rename = "DiscoveryDate", with = "dotnet_date_format")]
     pub discovery_date: NaiveDate,
 
     /// Size of the document in bytes
@@ -732,7 +773,7 @@ pub struct UrlInfo {
     pub is_page: bool,
 
     /// When Bing last crawled this URL
-    #[serde(rename = "LastCrawledDate")]
+    #[serde(rename = "LastCrawledDate", with = "dotnet_date_format")]
     pub last_crawled_date: NaiveDate,
 
     /// Total number of child URLs under this URL
@@ -874,27 +915,103 @@ pub struct RankAndTrafficStats {
     pub impressions: i64,
 }
 
+/// Crawl date filter options
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.CrawlDateFilter
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
+pub enum CrawlDateFilter {
+    /// Any crawl date
+    Any = 0,
+    /// Last week
+    LastWeek = 1,
+    /// Last two weeks
+    LastTwoWeeks = 2,
+}
+
+/// Discovered date filter options
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.DiscoveredDateFilter
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
+pub enum DiscoveredDateFilter {
+    /// Any discovered date
+    Any = 0,
+    /// Last week
+    LastWeek = 1,
+    /// Last month
+    LastMonth = 2,
+}
+
+/// Document flags filters
+///
+/// Flags enumeration for filtering by document properties.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.DocFlagsFilters
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
+pub enum DocFlagsFilters {
+    /// Any document flags
+    Any = 0,
+    /// Document is blocked by robots.txt
+    IsBlockedByRobotsTxt = 1,
+}
+
+/// HTTP code filters
+///
+/// Flags enumeration for filtering by HTTP status codes.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.HttpCodeFilters
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
+#[repr(i32)]
+pub enum HttpCodeFilters {
+    /// Any HTTP code
+    Any = 0,
+    /// 2xx success codes
+    Code2xx = 1,
+    /// 3xx redirect codes
+    Code3xx = 2,
+    /// 301 permanent redirect
+    Code301 = 4,
+    /// 302 temporary redirect
+    Code302 = 8,
+    /// 4xx client error codes
+    Code4xx = 16,
+    /// 5xx server error codes
+    Code5xx = 32,
+    /// All other codes
+    AllOthers = 64,
+}
+
 /// Filter properties for queries
 ///
-/// Optional filters that can be applied when querying data.
+/// Used to filter URL information queries by various criteria.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.FilterProperties
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FilterProperties {
-    /// Filter by search engine ID
-    #[serde(rename = "SearchEngine")]
-    pub search_engine: Option<i32>,
+    /// Filter by crawl date range
+    #[serde(rename = "CrawlDateFilter")]
+    pub crawl_date_filter: CrawlDateFilter,
 
-    /// Filter by crawl date
-    #[serde(rename = "CrawlDate")]
-    pub crawl_date: Option<NaiveDate>,
+    /// Filter by discovered date range
+    #[serde(rename = "DiscoveredDateFilter")]
+    pub discovered_date_filter: DiscoveredDateFilter,
 
-    /// Filter by discovered date
-    #[serde(rename = "DiscoveredDate")]
-    pub discovered_date: Option<NaiveDate>,
+    /// Filter by document flags
+    #[serde(rename = "DocFlagsFilters")]
+    pub doc_flags_filters: DocFlagsFilters,
+
+    /// Filter by HTTP status codes
+    #[serde(rename = "HttpCodeFilters")]
+    pub http_code_filters: HttpCodeFilters,
 }
 
 /// URL fetched on demand
 ///
 /// Result of requesting Bing to fetch a specific URL.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.FetchedUrl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchedUrl {
     /// The URL that was fetched
@@ -905,14 +1022,20 @@ pub struct FetchedUrl {
     #[serde(rename = "Date", with = "dotnet_date_format")]
     pub date: NaiveDate,
 
-    /// HTTP status code returned
-    #[serde(rename = "HttpStatusCode")]
-    pub http_status_code: i32,
+    /// Whether the fetch request has expired
+    #[serde(rename = "Expired")]
+    pub expired: bool,
+
+    /// Whether the URL was successfully fetched
+    #[serde(rename = "Fetched")]
+    pub fetched: bool,
 }
 
 /// Detailed information about a fetched URL
 ///
-/// Extended version of `FetchedUrl` with response headers and message.
+/// Extended version of `FetchedUrl` with document content and HTTP headers.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.FetchedUrlDetails
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchedUrlDetails {
     /// The URL that was fetched
@@ -923,61 +1046,61 @@ pub struct FetchedUrlDetails {
     #[serde(rename = "Date", with = "dotnet_date_format")]
     pub date: NaiveDate,
 
-    /// HTTP status code returned
-    #[serde(rename = "HttpStatusCode")]
-    pub http_status_code: i32,
+    /// The document content returned
+    #[serde(rename = "Document")]
+    pub document: String,
 
     /// HTTP response headers
-    #[serde(rename = "ResponseHeaders")]
-    pub response_headers: String,
+    #[serde(rename = "Headers")]
+    pub headers: String,
 
-    /// HTTP response message
-    #[serde(rename = "HttpMessage")]
-    pub http_message: String,
+    /// HTTP status message
+    #[serde(rename = "Status")]
+    pub status: String,
 }
 
 /// Keyword search statistics
 ///
 /// Performance metrics for a specific search keyword.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.Keyword
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Keyword {
     /// The search query/keyword
     #[serde(rename = "Query")]
     pub query: String,
 
-    /// Number of times this keyword resulted in impressions
+    /// Number of exact match impressions for this keyword
     #[serde(rename = "Impressions")]
     pub impressions: i64,
 
-    /// Number of clicks from this keyword
-    #[serde(rename = "Clicks")]
-    pub clicks: i64,
-
-    /// Date of these statistics
-    #[serde(rename = "Date", with = "dotnet_date_format")]
-    pub date: NaiveDate,
+    /// Number of broad match impressions for this keyword
+    #[serde(rename = "BroadImpressions")]
+    pub broad_impressions: i64,
 }
 
-/// Aggregated keyword statistics
+/// Keyword statistics for a specific date
 ///
-/// Summary statistics for a keyword across all dates.
+/// Performance metrics for a keyword on a particular date.
+///
+/// Reference: Microsoft.Bing.Webmaster.Api.Interfaces.KeywordStats
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeywordStats {
     /// The search query/keyword
     #[serde(rename = "Query")]
     pub query: String,
 
-    /// Total number of impressions across all dates
-    #[serde(rename = "TotalImpressions")]
-    pub total_impressions: i64,
+    /// Number of exact match impressions
+    #[serde(rename = "Impressions")]
+    pub impressions: i64,
 
-    /// Total number of clicks across all dates
-    #[serde(rename = "TotalClicks")]
-    pub total_clicks: i64,
+    /// Number of broad match impressions
+    #[serde(rename = "BroadImpressions")]
+    pub broad_impressions: i64,
 
-    /// Average position when users click through
-    #[serde(rename = "AvgClickPosition")]
-    pub avg_click_position: f64,
+    /// Date of these statistics
+    #[serde(rename = "Date", with = "dotnet_date_format")]
+    pub date: NaiveDate,
 }
 
 /// Site migration information
