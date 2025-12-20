@@ -1,6 +1,6 @@
 [package]
 name = "bing-webmaster-api"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2021"
 authors = ["Aleksei Arsenev"]
 description = "Rust client for the Bing Webmaster API"
@@ -11,6 +11,7 @@ documentation = "https://docs.rs/bing-webmaster-api"
 readme = "README.md"
 keywords = ["bing", "webmaster", "api", "seo", "search"]
 categories = ["api-bindings", "web-programming::http-client"]
+exclude = [".github/*"]
 
 [dependencies]
 # async
