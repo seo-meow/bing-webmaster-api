@@ -1,0 +1,9 @@
+/target
+/dev/
+
+# API keys for real integration tests
+tests/api_key.txt
+
+CLAUDE.md
+
+/.idea

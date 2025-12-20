@@ -1,0 +1,88 @@
+// stats
+GetChildrenUrlInfo(String, String, UInt16, FilterProperties)
+
+GetChildrenUrlTrafficInfo(String, String, UInt16)
+
+GetUrlTrafficInfo(String, String)
+
+GetRankAndTrafficStats(String)
+
+GetRelatedKeywords(String, String, String, DateTime, DateTime)
+
+GetUrlInfo(String, String)
+
+GetUrlLinks(String, String, Int16)
+
+FetchUrl(String, String)
+
+GetFetchedUrlDetails(String, String)
+
+GetFetchedUrls(String)
+
+GetKeyword(String, String, String, DateTime, DateTime)
+
+GetKeywordStats(String, String, String)
+
+GetLinkCounts(String, Int16)
+
+GetPageQueryStats(String, String)
+
+GetPageStats(String)
+
+GetQueryPageDetailStats(String, String, String)
+
+GetQueryPageStats(String, String)
+
+GetQueryParameters(String)
+
+GetQueryStats(String)
+
+GetQueryTrafficStats(String, String)
+
+RemovePagePreviewBlock(String, String)
+
+RemoveQueryParameter(String, String)
+
+GetCrawlStats(String)
+
+GetCrawlIssues(String)
+
+
+// manage
+SubmitSiteMove(String, SiteMoveSettings)
+
+GetSiteMoves(String)
+
+GetConnectedPages(String)
+
+GetCrawlSettings(String)
+
+SaveCrawlSettings(String, CrawlSettings)
+
+RemoveCountryRegionSettings(String, CountryRegionSettings)
+
+AddCountryRegionSettings(String, CountryRegionSettings)
+
+AddBlockedUrl(String, BlockedUrl)
+
+AddConnectedPage(String, String)
+
+AddDeepLinkBlock(String, String, String, String)
+
+AddPagePreviewBlock(String, String, BlockReason)
+
+AddQueryParameter(String, String)
+
+EnableDisableQueryParameter(String, String, Boolean)
+
+GetActivePagePreviewBlocks(String)
+
+GetBlockedUrls(String)
+
+GetDeepLinkBlocks(String)
+
+GetCountryRegionSettings(String)
+
+RemoveBlockedUrl(String, BlockedUrl)
+
+RemoveDeepLinkBlock(String, String, String, String)
